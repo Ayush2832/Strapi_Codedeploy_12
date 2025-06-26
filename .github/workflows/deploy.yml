@@ -1,0 +1,37 @@
+name: ECS automated deployment
+
+on:
+  push:
+    branches: developer
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: checkout code
+          uses: actions/checkout@v4
+
+        - name: terraform setup
+          uses: hashicorp/setup-terraform@v3
+
+        - name: terraform init
+          run: terraform init
+          working-directory: ./terraform
+
+        - name: Terraform Apply
+          run: terraform apply -auto-approve
+          working-directory: ./terraform
+          env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+        - name: Register ECS Task Definition from taskdef-v2.json
+          run: |
+            aws ecs register-task-definition \
+              --cli-input-json file://terraform5/taskdef-v2.json
+
+        - name: Trigger CodeDeploy using appspec.json
+          run: |
+            aws deploy create-deployment \
+              --cli-input-json file://terraform5/appspec.json
