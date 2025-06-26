@@ -4,6 +4,14 @@ on:
   push:
     branches: developer
 
+env:
+  AWS_REGION: us-east-2
+  ECR_REPOSITORY: strapirepo
+  ECS_CLUSTER: strapi-cluster
+  ECS_SERVICE: strapi-service
+  CONTAINER_NAME: strapi
+
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -11,6 +19,13 @@ jobs:
     steps:
         - name: checkout code
           uses: actions/checkout@v4
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ env.AWS_REGION }}
 
         - name: terraform setup
           uses: hashicorp/setup-terraform@v3
@@ -26,12 +41,38 @@ jobs:
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-        - name: Register ECS Task Definition from taskdef-v2.json
-          run: |
-            aws ecs register-task-definition \
-              --cli-input-json file://terraform5/taskdef-v2.json
+        - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v2
 
-        - name: Trigger CodeDeploy using appspec.json
+
+        - name: Update task definition image in new-task-def.json
+          env:
+            IMAGE_URI: ${{secrets.ACCOUNT_ID}}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:c970d02
           run: |
-            aws deploy create-deployment \
-              --cli-input-json file://terraform5/appspec.json
+            jq --arg IMAGE "$IMAGE_URI" \
+              '.containerDefinitions[0].image = $IMAGE
+              | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+              task-def.json > new-task-def.json
+
+        - name: Update ECS Task Definition
+          id: task-def
+          uses: aws-actions/amazon-ecs-render-task-definition@v1
+          with:
+            task-definition: new-task-def.json
+            container-name: ${{ env.CONTAINER_NAME }}
+            image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:c970d02
+
+        - name: Deploy to ECS
+          uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+          with:
+            cluster: ${{ secrets.ECS_CLUSTER }}
+            service: ${{ secrets.ECS_SERVICE }}
+            task-definition: ${{ steps.task-def.outputs.task-definition }}
+            wait-for-service-stability: true
+
+        - name: Import terrfrom.tfstate file as artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: location of terraform file
+            path: ./terraform/terraform.tfstate
