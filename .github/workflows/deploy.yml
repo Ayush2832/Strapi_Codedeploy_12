@@ -2,7 +2,7 @@ name: ECS automated deployment
 
 on:
   push:
-    branches: developer
+    branches: master
 
 env:
   AWS_REGION: us-east-2
@@ -66,8 +66,8 @@ jobs:
         - name: Deploy to ECS
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
           with:
-            cluster: ${{ secrets.ECS_CLUSTER }}
-            service: ${{ secrets.ECS_SERVICE }}
+            cluster: ${{ env.ECS_CLUSTER }}
+            service: ${{ env.ECS_SERVICE }}
             task-definition: ${{ steps.task-def.outputs.task-definition }}
             wait-for-service-stability: true
 
