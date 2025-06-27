@@ -2,7 +2,7 @@ name: ECS automated deployment
 
 on:
   push:
-    branches: developer
+    branches: master
 
 jobs:
   deploy:
@@ -45,7 +45,7 @@ jobs:
         container-name: strapi
         image: ${{ steps.build-image.outputs.image }}
 
-    - name : COde deploy
+    - name : Cdde deploy
       run: |
         aws deploy create-deployment \
             --application-name strapi-codedeploy-app \
