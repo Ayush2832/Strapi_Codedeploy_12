@@ -12,7 +12,7 @@ jobs:
 
     - name: checkout code
       uses: actions/checkout@v4
-      
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -42,7 +42,8 @@ jobs:
 
     - name: Download task definition
       run: |
-        aws ecs describe-task-definition --task-definition my-task-definition-family --query taskDefinition > task-definition.json
+        aws ecs describe-task-definition --task-definition strapi-task --query taskDefinition > task-definition.json
+
 
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
