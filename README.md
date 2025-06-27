@@ -9,6 +9,9 @@ Set up a GitHub Actions workflow to handle deployment:
 ---
 
 ## 1. Docker image and ECR
+
+[Docs I follow](http://github.com/aws-actions/amazon-ecs-deploy-task-definition?tab=readme-ov-file)
+
 - we already have the image in docker hub `ayush2832/strapi3:v6`. 
 - We created the ecs using `aws ecr create-repository --repository-name strapirepo`
 > aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.<your-region>.amazonaws.com

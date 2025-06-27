@@ -53,11 +53,23 @@ jobs:
         container-name: strapi
         image: ${{ steps.build-image.outputs.image }}
 
+    - name: Clean up task definition JSON for registration
+      run: |
+       jq 'del(
+       .taskDefinitionArn,
+       .revision,
+       .status,
+       .requiresAttributes,
+       .compatibilities,
+       .registeredAt,
+       .registeredBy
+       )' task-definition.json > new-task-definition.json
+
+
     - name: Update ECS Task Definition 
       run: |
            aws ecs register-task-definition \
-           --cli-input-json file://task-definition.json
-
+           --cli-input-json file://new-task-definition.json
 
 
     - name : Cdde deploy
