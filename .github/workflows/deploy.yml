@@ -41,9 +41,22 @@ jobs:
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+        - name: Import terrfrom.tfstate file as artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: location of terraform file
+            path: ./terraform/terraform.tfstate
+
         - name: Login to Amazon ECR
           id: login-ecr
           uses: aws-actions/amazon-ecr-login@v2
+
+        - name: Download current ECS Task Definition
+          run: |
+            aws ecs describe-task-definition \
+            --task-definition ${{ env.CONTAINER_NAME }} \
+            --query "taskDefinition" \
+            > task-def.json
 
 
         - name: Update task definition image in new-task-def.json
@@ -71,8 +84,3 @@ jobs:
             task-definition: ${{ steps.task-def.outputs.task-definition }}
             wait-for-service-stability: true
 
-        - name: Import terrfrom.tfstate file as artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: location of terraform file
-            path: ./terraform/terraform.tfstate
