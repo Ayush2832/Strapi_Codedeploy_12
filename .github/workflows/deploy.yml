@@ -10,6 +10,7 @@ env:
   ECS_CLUSTER: strapi-cluster
   ECS_SERVICE: strapi-service
   CONTAINER_NAME: strapi
+  TASK_DEFINITION_FAMILY: strapi-task
 
 
 jobs:
@@ -54,7 +55,7 @@ jobs:
         - name: Download current ECS Task Definition
           run: |
             aws ecs describe-task-definition \
-            --task-definition ${{ env.CONTAINER_NAME }} \
+            --task-definition ${{ env.TASK_DEFINITION_FAMILY }} \
             --query "taskDefinition" \
             > task-def.json
 
