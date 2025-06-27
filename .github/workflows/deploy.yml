@@ -68,7 +68,7 @@ jobs:
               | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
               task-def.json > new-task-def.json
 
-        - name: Update ECS Task Definition
+        - name: Update ECS Task Definition 
           id: task-def
           uses: aws-actions/amazon-ecs-render-task-definition@v1
           with:
@@ -76,7 +76,7 @@ jobs:
             container-name: ${{ env.CONTAINER_NAME }}
             image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:c970d02
 
-        - name: Deploy to ECS
+        - name: Deploy to ECS with new task definition
           uses: aws-actions/amazon-ecs-deploy-task-definition@v1
           with:
             cluster: ${{ env.ECS_CLUSTER }}
