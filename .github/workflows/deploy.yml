@@ -53,6 +53,11 @@ jobs:
         container-name: strapi
         image: ${{ steps.build-image.outputs.image }}
 
+    - name: Update ECS Task Definition 
+      run: |
+           aws ecs register-task-definition \
+           --cli-input-json file://task-definition.json
+
 
 
     - name : Cdde deploy
