@@ -2,86 +2,53 @@ name: ECS automated deployment
 
 on:
   push:
-    branches: master
-
-env:
-  AWS_REGION: us-east-2
-  ECR_REPOSITORY: strapirepo
-  ECS_CLUSTER: strapi-cluster
-  ECS_SERVICE: strapi-service
-  CONTAINER_NAME: strapi
-  TASK_DEFINITION_FAMILY: strapi-task
-
+    branches: developer
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-        - name: checkout code
-          uses: actions/checkout@v4
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ env.AWS_REGION }}
-
-        - name: terraform setup
-          uses: hashicorp/setup-terraform@v3
-
-        - name: terraform init
-          run: terraform init
-          working-directory: ./terraform
-
-        - name: Terraform Apply
-          run: terraform apply -auto-approve
-          working-directory: ./terraform
-          env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-        - name: Import terrfrom.tfstate file as artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: location of terraform file
-            path: ./terraform/terraform.tfstate
-
-        - name: Login to Amazon ECR
-          id: login-ecr
-          uses: aws-actions/amazon-ecr-login@v2
-
-        - name: Download current ECS Task Definition
-          run: |
-            aws ecs describe-task-definition \
-            --task-definition ${{ env.TASK_DEFINITION_FAMILY }} \
-            --query "taskDefinition" \
-            > task-def.json
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
 
 
-        - name: Update task definition image in new-task-def.json
-          env:
-            IMAGE_URI: ${{secrets.ACCOUNT_ID}}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:c970d02
-          run: |
-            jq --arg IMAGE "$IMAGE_URI" \
-              '.containerDefinitions[0].image = $IMAGE
-              | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
-              task-def.json > new-task-def.json
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: strapirepo
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./strapi
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-        - name: Update ECS Task Definition 
-          id: task-def
-          uses: aws-actions/amazon-ecs-render-task-definition@v1
-          with:
-            task-definition: new-task-def.json
-            container-name: ${{ env.CONTAINER_NAME }}
-            image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:c970d02
 
-        - name: Deploy to ECS with new task definition
-          uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-          with:
-            cluster: ${{ env.ECS_CLUSTER }}
-            service: ${{ env.ECS_SERVICE }}
-            task-definition: ${{ steps.task-def.outputs.task-definition }}
-            wait-for-service-stability: true
+    - name: Download task definition
+      run: |
+        aws ecs describe-task-definition --task-definition my-task-definition-family --query taskDefinition > task-definition.json
 
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: strapi
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name : COde deploy
+      run: |
+        aws deploy create-deployment \
+            --application-name strapi-codedeploy-app \
+            --deployment-group-name strapi-dg \
+            --revision revisionType=AppSpecContent,appSpecContent="{content=\"$(cat appspec.yml)\"}" \
+            --deployment-config-name CodeDeployDefault.ECSCanary10Percent5Minutes

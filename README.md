@@ -82,3 +82,8 @@ aws deploy create-deployment \
     '{revisionType: "AppSpecContent", appSpecContent: {content: $content}}')" \
   --description "Deploying new ECS task definition"
 
+> aws deploy create-deployment \
+  --application-name strapi-codedeploy-app \
+  --deployment-group-name strapi-dg \
+  --revision revisionType=AppSpecContent,appSpecContent="{content=\"$(cat appspec.yml)\"}" \
+  --deployment-config-name CodeDeployDefault.ECSCanary10Percent5Minutes
