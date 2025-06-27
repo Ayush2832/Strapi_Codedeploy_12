@@ -2,14 +2,6 @@ resource "aws_ecs_cluster" "main" {
   name = var.strapi_cluster
 }
 
-resource "aws_cloudwatch_log_group" "strapi_logs" {
-  name              = "/ecs/strapi"
-  retention_in_days = 7
-
-  tags = {
-    Name = "Strapi-loggroup"
-  }
-}
 
 resource "aws_security_group" "strapi_sg" {
   name   = "ecs-sg"
@@ -59,14 +51,6 @@ resource "aws_ecs_task_definition" "strapi" {
         }
       ]
 
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group = "/ecs/strapi"
-          awslogs-region = var.aws_region
-          awslogs-stream-prefix = "ecs"
-        }
-      }
     }
   ])
 }
