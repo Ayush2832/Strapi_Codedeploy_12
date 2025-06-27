@@ -53,6 +53,14 @@ jobs:
         container-name: strapi
         image: ${{ steps.build-image.outputs.image }}
 
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: strapi-service
+        cluster: strapi-cluster
+        wait-for-service-stability: true
+
     - name : Cdde deploy
       run: |
         aws deploy create-deployment \
