@@ -2,7 +2,7 @@ name: ECS automated deployment
 
 on:
   push:
-    branches: master
+    branches: developer
 
 jobs:
   deploy:
