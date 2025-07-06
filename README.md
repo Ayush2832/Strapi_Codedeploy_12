@@ -28,7 +28,7 @@ Set up a GitHub Actions workflow to handle deployment:
   --output text
 
 > Output: arn:aws:ecs:us-east-2:349769753356:task-definition/strapi-task:28
-
+> little changes here
 - Save task definion arn
 > TASK_DEF_ARN=$(aws ecs describe-services \
   --cluster $CLUSTER_NAME \
