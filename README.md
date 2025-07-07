@@ -8,7 +8,7 @@ Set up a GitHub Actions workflow to handle deployment:
 ---
 ## Diagram
 
-<image src="img.png" alt="diagram" width="600">
+<image src="img.png" alt="diagram" width="1000">
 
 ## 1. Terraform for creating infrastructure.
 - First we create our infrasture using the terraform.
