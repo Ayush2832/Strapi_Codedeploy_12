@@ -1,5 +1,4 @@
-# Task 12
-
+# Project
 Set up a GitHub Actions workflow to handle deployment:
 - Push the pre-built Docker image to Amazon ECR, tagged with the GitHub commit SHA.
 - Update the ECS Task Definition with the new image tag dynamically.
@@ -7,10 +6,20 @@ Set up a GitHub Actions workflow to handle deployment:
 - Optionally, monitor deployment status and initiate rollback if the deployment fails.
 
 ---
+## Diagram
 
-## 1. Manual Approach
-[Docs I follow for aws cli commands](https://docs.aws.amazon.com/cli/latest/reference/ecs/describe-tasks.html)
-[Docs I follow for github actions](http://github.com/aws-actions/amazon-ecs-deploy-task-definition?tab=readme-ov-file)
+<image src="img.png" alt="diagram" width="600">
+
+## 1. Terraform for creating infrastructure.
+- First we create our infrasture using the terraform.
+- First we mention basic configuration like the [provider](./terraform/provider.tf) and [variables](./terraform/variables.tf) and [output](./terraform/output.tf)
+- Then we create [VPC](./terraform/vpc.tf).
+- Then we create 
+
+## Manual Approach to run ECS with new task definiton.
+>[Docs I follow for aws cli commands](https://docs.aws.amazon.com/cli/latest/reference/ecs/describe-tasks.html)
+
+>[Docs I follow for github actions](http://github.com/aws-actions/amazon-ecs-deploy-task-definition?tab=readme-ov-file)
 
 - we already have the image in docker hub `ayush2832/strapi3:v6`. 
 - We created the ECR using `aws ecr create-repository --repository-name strapirepo`
