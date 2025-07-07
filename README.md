@@ -8,15 +8,22 @@ Set up a GitHub Actions workflow to handle deployment:
 ---
 ## Diagram
 
-<image src="img.png" alt="diagram" width="1000">
+<image src="./images/img.png" alt="diagram" width="1000">
 
-## 1. Terraform for creating infrastructure.
+## 1. ECR
+- We manually create a respository for our images to be stored there. For that we create new repostiory in ECR.
+
+## 2. Terraform for creating infrastructure.
 - First we create our infrasture using the terraform.
 - First we mention basic configuration like the [provider](./terraform/provider.tf) and [variables](./terraform/variables.tf) and [output](./terraform/output.tf)
 - Then we create [VPC](./terraform/vpc.tf).
-- Then we create 
+- Then we create [IAM](./terraform/iam.tf)
+- Then we create load balancer so that we can distribute the traffic. [ALB](./terraform/alb.tf)
+- Then we will create Task definiton, Cluster and service. [ECS](./terraform/ecs.tf)
+- Finally codedeploy so that we dont need to push things manually.
 
-## Manual Approach to run ECS with new task definiton.
+## 3. Manual Approach to run ECS with new task definiton.
+- I tested all the things by doing it manually and once all things works successfully we do this with codedeploy.
 >[Docs I follow for aws cli commands](https://docs.aws.amazon.com/cli/latest/reference/ecs/describe-tasks.html)
 
 >[Docs I follow for github actions](http://github.com/aws-actions/amazon-ecs-deploy-task-definition?tab=readme-ov-file)
@@ -78,7 +85,7 @@ Set up a GitHub Actions workflow to handle deployment:
   --revision revisionType=AppSpecContent,appSpecContent="{content=\"$(cat appspec.yml)\"}" \
   --deployment-config-name CodeDeployDefault.ECSCanary10Percent5Minutes
 
-## 2. Automation with github actions
+## 4. Automation with github actions
 - We can automate the above steps using the github actions.
 - We define the basic things like run pipeline whenever
 ```yml
@@ -175,3 +182,16 @@ jobs:
             --revision revisionType=AppSpecContent,appSpecContent="{content=\"$(cat appspec.yml)\"}" \
             --deployment-config-name CodeDeployDefault.ECSCanary10Percent5Minutes
 ```
+## Output
+- Once all things configured we will push the code in the main branch and the deployment will start
+- Once the deployment is done the output will shown like this.
+
+<image src="./images/2.png" alt="codedploy" width="600">
+
+- We can also verify the logs in the github actions
+
+<img src="./images/3.png" alt="githubactions" width="600">
+
+- Once all things are configured the output will look like this
+
+<img src="./images/deploy.png" alt="deploy" width="600">
