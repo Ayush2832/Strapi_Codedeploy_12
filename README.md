@@ -192,6 +192,7 @@ jobs:
 
 <img src="./images/3.png" alt="githubactions" width="600">
 
-- Once all things are configured the output will look like this
+- Once all things are configured access the api by copy the url. We can also give the destination for api. Output will look like this.
+http://strapi-alb-xxxxxxx.us-east-2.elb.amazonaws.com/api/authorss
 
 <img src="./images/deploy.png" alt="deploy" width="600">
