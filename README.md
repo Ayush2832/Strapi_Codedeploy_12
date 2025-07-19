@@ -186,13 +186,13 @@ jobs:
 - Once all things configured we will push the code in the main branch and the deployment will start
 - Once the deployment is done the output will shown like this.
 
-<image src="./images/2.png" alt="codedploy" width="600">
+<image src="./images/2.png" alt="codedploy" width="800">
 
 - We can also verify the logs in the github actions
 
-<img src="./images/3.png" alt="githubactions" width="600">
+<img src="./images/3.png" alt="githubactions" width="800">
 
 - Once all things are configured access the api by copy the url. We can also give the destination for api. Output will look like this.
 http://strapi-alb-xxxxxxx.us-east-2.elb.amazonaws.com/api/authorss
 
-<img src="./images/deploy.png" alt="deploy" width="600">
+<img src="./images/deploy.png" alt="deploy" width="800">
